@@ -13,17 +13,17 @@ export const heap = <T, E extends ((a: T, b: T) => number) | void = void>(
             heapImpl.compareFunction = compareFunction;
             return heapImpl;
         },
-        merge: <E>(withHeap: Heap<E>, compare?: any, disableSanityCheck?: boolean) => {
+        merge: (<E>(withHeap: Heap<E>, compare?: any, disableSanityCheck?: boolean) => {
             heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, compare, disableSanityCheck || false);
-            return heapImpl as any;
-        },
+            return heapImpl;
+        }) as any,
         compareFunction: compare as any,
         minimum: [0, 0],
         min: () => heapImpl.items[heapImpl.minimum[0]] ? heapImpl.items[heapImpl.minimum[0]][heapImpl.minimum[1]] || null : null,
-        push: <E>(item: E, compare?: any, disableSanityCheck?: boolean) => {
+        push: (<E>(item: E, compare?: any, disableSanityCheck?: boolean) => {
             heapImpl.items = mergeFunctionImpl(heapImpl, [[item]], compare, disableSanityCheck || false);
-            return heapImpl as any;
-        },
+            return heapImpl;
+        }) as any,
         equals: (otherHeap: Heap<T>) => heapImpl.items.length === otherHeap.items.length && otherHeap.items.reduce(
             (all: boolean, tree, i) => {
                 if (!all) {
