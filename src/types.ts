@@ -22,7 +22,7 @@ export interface Heap<T> {
         heap: Heap<E>,
         compare?: F,
         disableSanityCheck?: boolean,
-    ) => F extends void ? (E extends T | Primitives ? Heap<T | E> : never) : Heap<T | E>;
+    ) => SafeHeap<Heap<F extends void ? (E extends T | Primitives ? T | E : never) : T | E>>;
     /**
      * Remove top element (min)
      */
@@ -34,7 +34,7 @@ export interface Heap<T> {
         item: E,
         compare?: F,
         disableSanityCheck?: boolean,
-    ) => F extends void ? (E extends T | Primitives ? Heap<T | E> : never) : Heap<T | E>;
+    ) => SafeHeap<Heap<F extends void ? (E extends T | Primitives ? T | E : never) : T | E>>;
     /**
      * Does this heap equal another?
      */
@@ -44,7 +44,7 @@ export interface Heap<T> {
      */
     min: () => T | null;
     /**
-     * Returns sorted array of elements
+     * Returns sorted array of elements. Will empty out the heap
      */
     sort: () => T[];
     /**
