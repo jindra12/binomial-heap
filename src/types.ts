@@ -1,4 +1,6 @@
-export type Primitives = string | number | Date | undefined | null;
+export type Primitives = string | number | Date;
+
+export type SafeHeap<T> = T extends Heap<never> ? never : T;
 
 export interface Heap<T> {  
     /**
@@ -16,15 +18,11 @@ export interface Heap<T> {
     /**
      * Merge two heaps together
      */
-    merge: (<E extends T | Primitives>(
+    merge: <E, F extends ((a: T | E, b: T | E) => number) | void = void>(
         heap: Heap<E>,
-        compare?: (a: T | E, b: T | E) => number,
+        compare?: F,
         disableSanityCheck?: boolean,
-    ) => Heap<T | E>) | (<E extends object>(
-        heap: Heap<T | E>,
-        compare: (a: T | E, b: T | E) => number,
-        disableSanityCheck?: boolean,
-    ) => Heap<T | E>);
+    ) => F extends void ? (E extends T | Primitives ? Heap<T | E> : never) : Heap<T | E>;
     /**
      * Remove top element (min)
      */
@@ -32,15 +30,11 @@ export interface Heap<T> {
     /**
      * Add another element
      */
-    push: (<E extends T | Primitives>(
+    push: <E, F extends ((a: T | E, b: T | E) => number) | void = void>(
         item: E,
-        compare?: (a: T | E, b: T | E) => number,
+        compare?: F,
         disableSanityCheck?: boolean,
-    ) => Heap<T | E>) | (<E extends object>(
-        item: T | E,
-        compare: (a: T | E, b: T | E) => number,
-        disableSanityCheck?: boolean,
-    ) => Heap<T | E>);
+    ) => F extends void ? (E extends T | Primitives ? Heap<T | E> : never) : Heap<T | E>;
     /**
      * Does this heap equal another?
      */
@@ -56,11 +50,11 @@ export interface Heap<T> {
     /**
      * Delete an element, min or max from heap
      */
-    delete: (item: T | 'max' | 'min' | ((compare: T) => boolean)) => Heap<T>;
+    delete: (item: T | ((compare: T) => boolean)) => T | null;
     /**
      * Search through the heap for an element
      */
-    search: (seek : T | ((compare: T) => boolean)) => T | null;
+    search: (seek: T | ((compare: T) => boolean)) => T | null;
     /**
      * Function which is currently used for comparison
      */
