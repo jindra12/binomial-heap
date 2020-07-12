@@ -2,7 +2,7 @@ export const readMin = <T>(merged: T[][], compare: (a: T, b: T) => number, getMi
     let min = merged[0][0];
     let indexes = [0, 0];
     merged.forEach((tree, i) => {
-        if (compare(min, tree[0]) < 0) {
+        if (compare(tree[0], min) < 0) {
             min = tree[0];
             indexes = [i, 0];
         }
@@ -11,12 +11,8 @@ export const readMin = <T>(merged: T[][], compare: (a: T, b: T) => number, getMi
     return merged;
 }
 
-export const getRoots = <T>(tree: T[], acc: T[][]): T[][] => {
-    if (tree.length === 1) {
-        return acc;
-    }
-    acc.push(tree.slice(tree.length / 2, tree.length - 1));
-    return getRoots(tree.slice(0, tree.length / 2), acc);
+export const getRoots = <T>(tree: T[], acc: T[][], start: number = 0, end: number = tree.length - 1): T[][] => {
+    
 };
 
 export const swapElements = <T>(heap: T[][], a: [number, number], b: [number, number]) => {

@@ -1,16 +1,20 @@
 import { Heap, Primitives, SafeHeap } from '../types';
-import { getDefaultComparator, getIndex } from './comparators';
+import { getDefaultComparator, getIndex, sanityCheck } from './comparators';
 import { getRoots, treeClimb } from './traverseHelpers';
-import { mergeHeaps, mergeFunctionImpl } from './mergeHelpers';
+import { mergeHeaps, mergeFunctionImpl, flatten } from './mergeHelpers';
 
 export const heap = <T, E extends ((a: T, b: T) => number) | void = void>(
     items: T[],
     compare: E = getDefaultComparator<T>() as any,
 ): SafeHeap<Heap<E extends void ? (T extends Primitives ? T : never) : T>> => {
+    let minCarry: [number, number] | null = null;
     const heapImpl: Heap<T> = {
-        items: items.length > 0 ? items.reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare as any, min => heapImpl.minimum = min), []) : [],
+        items: items.length > 0 ? items.reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare as any, min => minCarry = min, false), []) : [[]],
         compare: compareFunction => {
             heapImpl.compareFunction = compareFunction;
+            if (!sanityCheck(heapImpl.items, compareFunction)) {
+                heapImpl.items = flatten(heapImpl.items).reduce((p: T[][], c) => mergeHeaps(p, [[c]], compareFunction, min => heapImpl.minimum = min, true), []);
+            }
             return heapImpl;
         },
         merge: (<E>(withHeap: Heap<E>, compare?: any, disableSanityCheck?: boolean) => {
@@ -18,7 +22,7 @@ export const heap = <T, E extends ((a: T, b: T) => number) | void = void>(
             return heapImpl;
         }) as any,
         compareFunction: compare as any,
-        minimum: [0, 0],
+        minimum: minCarry || [0, 0],
         min: () => heapImpl.items[heapImpl.minimum[0]] ? heapImpl.items[heapImpl.minimum[0]][heapImpl.minimum[1]] || null : null,
         push: (<E>(item: E, compare?: any, disableSanityCheck?: boolean) => {
             heapImpl.items = mergeFunctionImpl(heapImpl, [[item]], compare, disableSanityCheck || false);
@@ -72,7 +76,7 @@ export const heap = <T, E extends ((a: T, b: T) => number) | void = void>(
         sort: () => {
             const acc: T[] = [];
             let popped = heapImpl.pop();
-            while (popped) {
+            while (popped !== null) {
                 acc.push(popped);
                 popped = heapImpl.pop();
             }

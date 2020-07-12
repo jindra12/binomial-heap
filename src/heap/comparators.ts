@@ -19,22 +19,29 @@ export const getValue = <T>(item: T): number | string => {
     throw Error('Could not find typeof.. this should never happen!');
 };
 
-export const sanityCheck = <T>(heap: T[][], compare: (a: T, b: T) => number): boolean => {
-    let isSorted = true;
-    heap.forEach(tree => {
-        if (tree[0] > heap[0][0]) {
-            isSorted = false
+const treeSanityCheck = <T>(tree: T[], compare: (a: T, b: T) => number): boolean => {
+    const compared: boolean[] = new Array<boolean>(tree.length);
+    let jump = 1;
+    for (let i = 0; i < tree.length; i++) {
+        const compareTo = tree[i];
+        while ((i + jump) < tree.length) {
+            if (compared[i + jump]) {
+                break;
+            }
+            if (compare(tree[i + jump], compareTo) < 0) {
+                return false;
+            }
+            jump *= 2;
         }
-    });
-    if (!isSorted) {
-        return false;
-    }
-    if (heap.length === 1) {
-        return true;
-    }
-
-    return sanityCheck(heap.slice(0, heap.length / 2), compare) && sanityCheck(heap.slice(heap.length / 2, heap.length - 1), compare);
+        jump = 1;
+    }    
+    return true;
 };
+
+export const sanityCheck = <T>(heap: T[][], compare: (a: T, b: T) => number): boolean => heap.reduce(
+    (p: boolean, c) => !p ? false : treeSanityCheck(c, compare),
+    true,
+);
 
 export const preSanityCheck = <T, E>(a: T[][], b: E[][], compare?: Function) => typeof (a[0] && a[0][0]) === typeof (b[0] && b[0][0]) && !compare;
 

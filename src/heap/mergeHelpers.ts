@@ -10,24 +10,33 @@ export const flatten = <T>(heap: T[][]): T[] => heap.reduce((p: T[], c) => {
 export const failedMerge = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void): T[][] => [
     ...flatten(a),
     ...flatten(b),
-].reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare, getMin, true), []);
+].reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare, getMin, false), []);
 
 export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void, failedSanityCheck?: boolean): T[][] => {
-    if (!failedSanityCheck) {
+    if (failedSanityCheck) {
         return failedMerge(a, b, compare, getMin);
     }
     const mergingQueue: T[][] = [];
-    a.forEach((aTree) => {
-        b.forEach((bTree) => {
-            mergingQueue.push(aTree);
-            mergingQueue.push(bTree);
-        });
-    });
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+        if (a[i] !== undefined && b[i] === undefined) {
+            mergingQueue.push(a[i]);
+        }
+        else if (b[i] !== undefined && a[i] === undefined) {
+            mergingQueue.push(b[i]);
+        }
+        else if (a[i].length < b[i].length) {
+            mergingQueue.push(a[i]);
+            mergingQueue.push(b[i]);
+        } else {
+            mergingQueue.push(b[i]);
+            mergingQueue.push(a[i]);
+        }
+    }
     mergingQueue.forEach((tree, i) => {
         const next = mergingQueue[i + 1];
         if (next) {
             const further = mergingQueue[i + 2];
-            if (next.length === tree.length && further.length !== next.length) {
+            if (next.length === tree.length && (!further || further.length !== next.length)) {
                 mergingQueue[i + 1] = mergeTree(tree, next, compare);
                 delete mergingQueue[i];
             }
@@ -53,7 +62,7 @@ export const mergeTree = <T>(
     a: T[],
     b: T[],
     compare: (a: T, b: T) => number,
-): T[] => compare(a[0], b[0]) >= 1 ? b.reduce((p, c) => {
+): T[] => compare(a[0], b[0]) < 0 ? b.reduce((p, c) => {
     p.push(c);
     return p;
 }, a) : a.reduce((p, c) => {
