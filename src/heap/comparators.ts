@@ -36,7 +36,7 @@ const treeSanityCheck = <T>(tree: T[], compare: (a: T, b: T) => number): boolean
             jump *= 2;
         }
         jump = 1;
-    }    
+    }
     return true;
 };
 
@@ -96,24 +96,29 @@ const findInSubTree = <T>(
     tree: T[],
     item: T,
     compare: (a: T, b: T) => number,
-    onSuccess: (pos: number) => void,
-    succeeded: () => boolean,
-    start: number = 0,
-    end: number = tree.length - 1
-) => {
-    if (!compare(tree[start], item)) {
-        onSuccess(start);
+): number | null => {
+    const compared: boolean[] = new Array<boolean>(tree.length);
+    let jump = 1;
+    for (let i = 0; i < tree.length; i++) {
+        if (!compare(item, tree[i])) {
+            return i;
+        }
+        while ((i + jump) < tree.length) {
+            if (compared[i + jump]) {
+                break;
+            }
+            const resolveCompare = compare(item, tree[i + jump]);
+            if (resolveCompare < 0) {
+                break;
+            }
+            if (!resolveCompare) {
+                return i + jump;
+            }
+            jump *= 2;
+        }
+        jump = 1;
     }
-    if (start === end || succeeded()) {
-        return;
-    }
-    const middle = end / 2
-    if (compare(tree[start], item) < 0) {
-        findInSubTree(tree, item, compare, onSuccess, succeeded, start, Math.floor(middle));
-    }
-    if (compare(tree[end], item) < 0) {
-        findInSubTree(tree, item, compare, onSuccess, succeeded, Math.ceil(middle), end);
-    }
+    return null;
 };
 
 const find = <T>(heap: T[][], item: T, compare: (a: T, b: T) => number): [number, number] | null => heap.reduce(
@@ -121,11 +126,8 @@ const find = <T>(heap: T[][], item: T, compare: (a: T, b: T) => number): [number
         if (p || compare(item, tree[0]) < 0) {
             return p;
         }
-        let found: number | undefined;
-        const succeeded = () => found !== undefined;
-        const onSuccess = (pos: number) => found = pos;
-        findInSubTree(tree, item, compare, onSuccess, succeeded);
-        return found ? [i, found] : p;
+        const found = findInSubTree(tree, item, compare);
+        return found !== null ? [i, found] : p;
     },
     null,
 );
