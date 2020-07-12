@@ -1,16 +1,22 @@
+export type TypeCompareAnalysis = 'string' | 'number' | 'Date';
+
 export interface Heap<T> {
+
     /**
      * Pointer to min location
      */
     minimum: [number, number];
+
     /**
      * Items in queue
      */
     items: T[][];
+
     /**
      * Remove top element (min)
      */
     pop: () => T | null;
+
     /**
      * Does this heap equal another?
      */
@@ -20,22 +26,31 @@ export interface Heap<T> {
      * Find out minimum value in heap
      */
     min: () => T | null;
+
     /**
      * Returns sorted array of elements. Will empty out the heap
      */
     sort: () => T[];
+
     /**
      * Delete an element, min or max from heap
      */
     delete: (item: T | ((compare: T) => boolean)) => T | null;
+
     /**
      * Search through the heap for an element
      */
     search: (seek: T | ((compare: T) => boolean)) => T | null;
+
     /**
      * Function which is currently used for comparison
      */
     compareFunction: (a: T, b: T) => number;
+
+    /**
+     * What kind of default comparison function will be used
+     */
+    kindOfCompare: TypeCompareAnalysis;
 
     /**
      * Set up custom comparator function

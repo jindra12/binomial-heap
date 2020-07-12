@@ -1,15 +1,17 @@
 import { Heap } from '../types';
-import { getDefaultComparator, getIndex, sanityCheck } from './comparators';
+import { getDefaultComparator, getIndex, sanityCheck, typeComparisonAnalyzer, mergeComparators } from './comparators';
 import { getRoots, treeClimb } from './traverseHelpers';
 import { mergeHeaps, mergeFunctionImpl, failedMerge } from './mergeHelpers';
 
 export const heap = <T>(
     items: T[],
-    compare: (a: T, b: T) => number = getDefaultComparator<T>(),
+    compare?: (a: T, b: T) => number,
 ): Heap<T> => {
     let minCarry: [number, number] | null = null;
+    const inputAnalysis = !compare ? typeComparisonAnalyzer(items) : 'string';
+    const trueCompare = (compare || getDefaultComparator<T>(inputAnalysis)) as any;
     const heapImpl: Heap<T> = {
-        items: items.length > 0 ? items.reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare as any, min => minCarry = min), []) : [[]],
+        items: items.length > 0 ? items.reduce((p: T[][], c) => mergeHeaps(p, [[c]], trueCompare, min => minCarry = min), []) : [[]],
         compare: compareFunction => {
             heapImpl.compareFunction = compareFunction;
             if (!sanityCheck(heapImpl.items, compareFunction)) {
@@ -18,10 +20,13 @@ export const heap = <T>(
             return heapImpl;
         },
         merge: (withHeap, compare, disableSanityCheck) => {
-            heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, compare, disableSanityCheck || false);
+            const nextAnalysis = mergeComparators(heapImpl.kindOfCompare, withHeap.kindOfCompare);
+            const nextCompare = compare || getDefaultComparator<T>(nextAnalysis);
+            heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, nextCompare as any, disableSanityCheck || false);
+            heapImpl.kindOfCompare = nextAnalysis;
             return heapImpl as any;
         },
-        compareFunction: compare as any,
+        compareFunction: trueCompare,
         minimum: minCarry || [0, 0],
         min: () => heapImpl.items[heapImpl.minimum[0]] ? heapImpl.items[heapImpl.minimum[0]][heapImpl.minimum[1]] || null : null,
         push: (<E>(item: E, compare?: any, disableSanityCheck?: boolean) => {
@@ -84,7 +89,7 @@ export const heap = <T>(
             }
             return acc;
         },
-
+        kindOfCompare: inputAnalysis,
     };
     return heapImpl as any;
 };

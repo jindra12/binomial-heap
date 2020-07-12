@@ -1,3 +1,5 @@
+import { TypeCompareAnalysis } from "../types";
+
 export const getValue = <T>(item: T): number | string => {
     if (item instanceof Date) {
         return item.getTime();
@@ -45,11 +47,47 @@ export const sanityCheck = <T>(heap: T[][], compare: (a: T, b: T) => number): bo
 
 export const preSanityCheck = <T, E>(a: T[][], b: E[][], compare?: Function) => typeof (a[0] && a[0][0]) === typeof (b[0] && b[0][0]) && !compare;
 
-export const getDefaultComparator = <T>() => (a: T, b: T) => {
+export const typeComparisonAnalyzer = <T>(items: T[]): TypeCompareAnalysis => items.reduce(
+    (p: TypeCompareAnalysis, item) => {
+        if (item instanceof Date) {
+            if (p === 'number') {
+                return 'Date';
+            }
+        }
+        if (typeof item === 'string') {
+            if (isNaN(Date.parse(item))) {
+                return 'string';
+            } else if (p === 'number' || p === 'Date') {
+                return 'Date';
+            }
+            return 'string';
+        }
+        return p;
+    }, 
+    'number',
+);
+
+export const mergeComparators = (a: TypeCompareAnalysis, b: TypeCompareAnalysis): TypeCompareAnalysis => {
+    if (a === 'string' || b === 'string') {
+        return 'string';
+    }
+    if (a === 'Date' || b === 'Date') {
+        return 'Date';
+    }
+    return 'number';
+};
+
+export const getDefaultComparator = <T>(kindOfCompare: 'string' | 'number' | 'Date') => (a: T, b: T) => {
     const valueA = getValue(a);
     const valueB = getValue(b);
     if (typeof valueA === 'number' && typeof valueB === 'number') {
-        return valueA - valueB;
+        if (kindOfCompare === 'number' || kindOfCompare === 'Date') {
+            return valueA - valueB;
+        }
+        return valueA.toString().localeCompare(valueB.toString());
+    }
+    if (kindOfCompare === 'Date') {
+        return new Date(valueA).getTime() - new Date(valueB).getTime();
     }
     return valueA.toString().localeCompare(valueB.toString());
 };
