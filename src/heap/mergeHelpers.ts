@@ -1,5 +1,5 @@
 import { Heap } from "../types";
-import { getDefaultComparator, preSanityCheck, sanityCheck } from "./comparators";
+import { preSanityCheck, sanityCheck } from "./comparators";
 import { readMin } from "./traverseHelpers";
 
 export const flatten = <T>(heap: T[][]): T[] => heap.reduce((p: T[], c) => {
@@ -41,18 +41,17 @@ export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => numbe
     return readMin(mergingQueue.filter(tree => tree !== undefined), compare, getMin);
 };
 
-export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: E[][], compare: ((a: T | E, b: T | E) => number) | undefined, disableSanityCheck: boolean) => {
-    const trueCompare = compare || getDefaultComparator<T | E>();
-    heap.compareFunction = trueCompare;
+export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: E[][], compare: ((a: T | E, b: T | E) => number), disableSanityCheck: boolean) => {
+    heap.compareFunction = compare;
     const merged = mergeHeaps<T | E>(
         heap.items,
         items,
-        trueCompare,
+        compare,
         min => heap.minimum = min,
     ) as T[][];
     return disableSanityCheck 
         || preSanityCheck(heap.items, items)
-        || sanityCheck(merged, trueCompare) ? merged : failedMerge(merged, trueCompare, min => heap.minimum = min); 
+        || sanityCheck(merged, compare) ? merged : failedMerge(merged, compare, min => heap.minimum = min); 
 };
 
 export const mergeTree = <T>(

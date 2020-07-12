@@ -30,17 +30,7 @@ export const swapElements = <T>(heap: T[][], a: [number, number], b: [number, nu
 export const treeClimb = <T>(heap: T[][], start: [number, number]) => {
     const tree = heap[start[0]];
     const swaps: number[] = [];
-    let begin = 0;
-    let end = tree.length - 1;
-    while (begin !== end) {
-        const middle = end / 2
-        if (start[1] > middle) {
-            swaps.push(begin);
-            begin = Math.ceil(middle);
-        } else {
-            end = Math.ceil(middle);
-        }
-    }
+    
     swaps.reverse().forEach((swap, i) => {
         if (swaps[i + 1] !== undefined) {
             swapElements(heap, [start[0], swap], [start[0], swaps[i + 1]]);

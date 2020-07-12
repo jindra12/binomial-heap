@@ -29,10 +29,10 @@ export const heap = <T>(
         compareFunction: trueCompare,
         minimum: minCarry || [0, 0],
         min: () => heapImpl.items[heapImpl.minimum[0]] ? heapImpl.items[heapImpl.minimum[0]][heapImpl.minimum[1]] || null : null,
-        push: (<E>(item: E, compare?: any, disableSanityCheck?: boolean) => {
-            heapImpl.items = mergeFunctionImpl(heapImpl, [[item]], compare, disableSanityCheck || false);
-            return heapImpl;
-        }) as any,
+        push: (item, compare, disableSanityCheck) => {
+            heapImpl.items = mergeFunctionImpl(heapImpl, [[item]], compare || heapImpl.compareFunction as any, disableSanityCheck || false);
+            return heapImpl as any;
+        },
         equals: (otherHeap: Heap<T>) => heapImpl.items.length === otherHeap.items.length && otherHeap.items.reduce(
             (all: boolean, tree, i) => {
                 if (!all) {
