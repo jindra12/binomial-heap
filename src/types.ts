@@ -1,8 +1,4 @@
-export type Primitives = string | number | Date;
-
-export type SafeHeap<T> = T extends Heap<never> ? never : T;
-
-export interface Heap<T> {  
+export interface Heap<T> {
     /**
      * Pointer to min location
      */
@@ -12,33 +8,14 @@ export interface Heap<T> {
      */
     items: T[][];
     /**
-     * Set up custom comparator function
-     */
-    compare: (comparison: (a: T, b: T) => number) => Heap<T>;
-    /**
-     * Merge two heaps together
-     */
-    merge: <E, F extends ((a: T | E, b: T | E) => number) | void = void>(
-        heap: Heap<E>,
-        compare?: F,
-        disableSanityCheck?: boolean,
-    ) => SafeHeap<Heap<F extends void ? (E extends T | Primitives ? T | E : never) : T | E>>;
-    /**
      * Remove top element (min)
      */
     pop: () => T | null;
     /**
-     * Add another element
-     */
-    push: <E, F extends ((a: T | E, b: T | E) => number) | void = void>(
-        item: E,
-        compare?: F,
-        disableSanityCheck?: boolean,
-    ) => SafeHeap<Heap<F extends void ? (E extends T | Primitives ? T | E : never) : T | E>>;
-    /**
      * Does this heap equal another?
      */
     equals: (heap: Heap<T>) => boolean;
+
     /**
      * Find out minimum value in heap
      */
@@ -59,4 +36,27 @@ export interface Heap<T> {
      * Function which is currently used for comparison
      */
     compareFunction: (a: T, b: T) => number;
+
+    /**
+     * Set up custom comparator function
+     */
+    compare: (comparison: (a: T, b: T) => number) => Heap<T>;
+
+    /**
+     * Merge two heaps together
+     */
+    merge: <E>(
+        heap: Heap<E>,
+        compare?: (a: T | E, b: T | E) => number,
+        disableSanityCheck?: boolean,
+    ) => Heap<T | E>;
+
+    /**
+     * Add another element
+     */
+    push: <E>(
+        item: E,
+        compare?: (a: T | E, b: T | E) => number,
+        disableSanityCheck?: boolean,
+    ) => Heap<T | E>;
 }

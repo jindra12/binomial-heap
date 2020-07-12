@@ -7,7 +7,7 @@ describe("Can setup a custom comparator function", () => {
             [-3, 3, 1, 2]
         ]);
         expect(test.compare((a, b) => Math.abs(a) - Math.abs(b)).items).toEqual([
-            [1, -3, 2, 3]
+            [1, 2, -3, 3]
         ]);
     });
     test("Can setup a comparator for strings", () => {
@@ -16,7 +16,7 @@ describe("Can setup a custom comparator function", () => {
             ['ab', 'af', 'bd', 'ef']
         ]);
         expect(test.compare((a, b) => a[1].localeCompare(b[1])).items).toEqual([
-            ['ab', 'bd', 'af', 'ef']
+            ['ab', 'af', 'bd', 'ef']
         ]);        
     });
     test("Can setup a comparator for objects", () => {
@@ -38,9 +38,9 @@ describe("Can setup a custom comparator function", () => {
         expect(test.compare((a: object, b: object) => Object.values(a)[0] - Object.values(b)[0]).items).toEqual([
             [
                 { a: 1 },
-                { c: 7 },
                 { b: 2 },
                 { d: 3 },
+                { c: 7 },
             ],
         ]);
     });

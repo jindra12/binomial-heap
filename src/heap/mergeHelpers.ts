@@ -7,15 +7,11 @@ export const flatten = <T>(heap: T[][]): T[] => heap.reduce((p: T[], c) => {
     return p;
 }, []);
 
-export const failedMerge = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void): T[][] => [
+export const failedMerge = <T>(a: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void): T[][] => [
     ...flatten(a),
-    ...flatten(b),
-].reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare, getMin, false), []);
+].reduce((p: T[][], c) => mergeHeaps(p, [[c]] as any, compare, getMin), []);
 
-export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void, failedSanityCheck?: boolean): T[][] => {
-    if (failedSanityCheck) {
-        return failedMerge(a, b, compare, getMin);
-    }
+export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void): T[][] => {
     const mergingQueue: T[][] = [];
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
         if (a[i] !== undefined && b[i] === undefined) {
@@ -47,15 +43,16 @@ export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => numbe
 
 export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: E[][], compare: ((a: T | E, b: T | E) => number) | undefined, disableSanityCheck: boolean) => {
     const trueCompare = compare || getDefaultComparator<T | E>();
-    return mergeHeaps<T | E>(
+    heap.compareFunction = trueCompare;
+    const merged = mergeHeaps<T | E>(
         heap.items,
         items,
         trueCompare,
         min => heap.minimum = min,
-        !disableSanityCheck
-            || preSanityCheck(heap.items, items)
-            || (sanityCheck(heap.items, trueCompare) && sanityCheck(items, trueCompare)),
-    ) as T[][]
+    ) as T[][];
+    return disableSanityCheck 
+        || preSanityCheck(heap.items, items)
+        || sanityCheck(merged, trueCompare) ? merged : failedMerge(merged, trueCompare, min => heap.minimum = min); 
 };
 
 export const mergeTree = <T>(

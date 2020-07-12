@@ -1,26 +1,26 @@
-import { Heap, Primitives, SafeHeap } from '../types';
+import { Heap } from '../types';
 import { getDefaultComparator, getIndex, sanityCheck } from './comparators';
 import { getRoots, treeClimb } from './traverseHelpers';
-import { mergeHeaps, mergeFunctionImpl, flatten } from './mergeHelpers';
+import { mergeHeaps, mergeFunctionImpl, failedMerge } from './mergeHelpers';
 
-export const heap = <T, E extends ((a: T, b: T) => number) | void = void>(
+export const heap = <T>(
     items: T[],
-    compare: E = getDefaultComparator<T>() as any,
-): SafeHeap<Heap<E extends void ? (T extends Primitives ? T : never) : T>> => {
+    compare: (a: T, b: T) => number = getDefaultComparator<T>(),
+): Heap<T> => {
     let minCarry: [number, number] | null = null;
     const heapImpl: Heap<T> = {
-        items: items.length > 0 ? items.reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare as any, min => minCarry = min, false), []) : [[]],
+        items: items.length > 0 ? items.reduce((p: T[][], c) => mergeHeaps(p, [[c]], compare as any, min => minCarry = min), []) : [[]],
         compare: compareFunction => {
             heapImpl.compareFunction = compareFunction;
             if (!sanityCheck(heapImpl.items, compareFunction)) {
-                heapImpl.items = flatten(heapImpl.items).reduce((p: T[][], c) => mergeHeaps(p, [[c]], compareFunction, min => heapImpl.minimum = min, true), []);
+                heapImpl.items = failedMerge(heapImpl.items, compareFunction, min => heapImpl.minimum = min);
             }
             return heapImpl;
         },
-        merge: (<E>(withHeap: Heap<E>, compare?: any, disableSanityCheck?: boolean) => {
+        merge: (withHeap, compare, disableSanityCheck) => {
             heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, compare, disableSanityCheck || false);
-            return heapImpl;
-        }) as any,
+            return heapImpl as any;
+        },
         compareFunction: compare as any,
         minimum: minCarry || [0, 0],
         min: () => heapImpl.items[heapImpl.minimum[0]] ? heapImpl.items[heapImpl.minimum[0]][heapImpl.minimum[1]] || null : null,
@@ -47,7 +47,9 @@ export const heap = <T, E extends ((a: T, b: T) => number) | void = void>(
                 return null;
             }
             const min = heapImpl.items[heapImpl.minimum[0]][heapImpl.minimum[1]];
-            getRoots(heapImpl.items[heapImpl.minimum[0]], []).forEach(root => heapImpl.items = mergeFunctionImpl(heapImpl, [root], undefined, false));
+            const roots = getRoots(heapImpl.items[heapImpl.minimum[0]]);
+            heapImpl.items = heapImpl.items.filter((_, i) => heapImpl.minimum[0] !== i);
+            roots.forEach(root => heapImpl.items = mergeFunctionImpl(heapImpl, [root], heapImpl.compareFunction, true));
             return min;
         },
         delete: toSeek => {

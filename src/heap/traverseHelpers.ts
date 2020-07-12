@@ -11,8 +11,14 @@ export const readMin = <T>(merged: T[][], compare: (a: T, b: T) => number, getMi
     return merged;
 }
 
-export const getRoots = <T>(tree: T[], acc: T[][], start: number = 0, end: number = tree.length - 1): T[][] => {
-    
+export const getRoots = <T>(tree: T[]): T[][] => {
+    const acc: T[][] = [];
+    let jump = 1;
+    while (jump < tree.length) {
+        acc.push(tree.slice(jump, jump * 2));
+        jump *= 2;
+    }
+    return acc;
 };
 
 export const swapElements = <T>(heap: T[][], a: [number, number], b: [number, number]) => {
