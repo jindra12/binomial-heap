@@ -34,6 +34,11 @@ describe("Can delete elements in various intervals", () => {
         const test = heap([1, 2, 3, 4]);
         test.delete(1);
         test.delete(4);
-        expect(test.pop()).toEqual(1);
-    })
+        expect(test.pop()).toEqual(2);
+    });
+    test("Won't crash on empty heap delete", () => {
+        const empty = heap([3]);
+        empty.pop();
+        expect(empty.delete(3)).toEqual(null);
+    });
 });

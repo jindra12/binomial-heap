@@ -19,12 +19,12 @@ describe("Can sort out heaps", () => {
     test("Can sort multi-type heap", () => {
         expect(
             heap(['1', '2', 3, '11', 11, 'Hello', '0', 0]).sort().map(item => item.toString())
-        ).toEqual(['1', '2', 3, '11', 11, 'Hello', '0', 0].sort((a, b) => a.toString().localeCompare(b.toString())).map(item => item.toString()))
+        ).toEqual(['1', '2', 3, '11', 11, 'Hello', '0', 0].sort((a, b) => a.toString().localeCompare(b.toString())).map(item => item.toString()));
     });
     test("Can sort multi type merge heap", () => {
         expect(
             heap(['1', '2', '11', 'Hello', '0']).merge(heap([0, 3, 11])).sort().map(item => item.toString())
-        ).toEqual(['1', '2', 3, '11', 11, 'Hello', '0', 0].sort((a, b) => a.toString().localeCompare(b.toString())).map(item => item.toString()))
+        ).toEqual(['1', '2', 3, '11', 11, 'Hello', '0', 0].sort((a, b) => a.toString().localeCompare(b.toString())).map(item => item.toString()));
     });
     test("Can sort a Date/string/number heap", () => {
         const dates = [

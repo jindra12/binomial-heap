@@ -64,6 +64,7 @@ export const heap = <T>(
                 heapImpl.compareFunction,
             );
             if (sought) {
+                heapImpl.minimum = [sought[0], 0];
                 treeClimb(heapImpl.items, sought);
                 return heapImpl.pop();
             }

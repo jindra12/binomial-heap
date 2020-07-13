@@ -30,4 +30,9 @@ describe("Can search in interval", () => {
         ];
         expect(heap(objects, (a: object, b: object) => JSON.stringify(a).localeCompare(JSON.stringify(b))).search(item => item['a'] === 5)).toEqual({ a: 5 });
     });
+    test("Won't crash on empty heap search", () => {
+        const empty = heap([3]);
+        empty.pop();
+        expect(empty.search(3)).toEqual(null);
+    });
 });

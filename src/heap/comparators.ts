@@ -133,7 +133,7 @@ const find = <T>(heap: T[][], item: T, compare: (a: T, b: T) => number): [number
 );
 
 const seek = <T>(heap: T[][], compare: (item: T) => boolean): [number, number] | null => heap.reduce(
-    (p: [number ,number] | null, tree, i) => p ? p : tree.reduce((p: [number, number] | null, item, j) => p ? p : (compare(item) ? [i, j] : null), null),
+    (p: [number, number] | null, tree, i) => p ? p : tree.reduce((p: [number, number] | null, item, j) => p ? p : (compare(item) ? [i, j] : null), null),
     null,
 );
 

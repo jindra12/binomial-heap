@@ -18,4 +18,13 @@ describe("Can push into interval", () => {
         const next = new Date(2020, 6, 12, 6).toISOString();
         expect(heap(dates).push(next).pop()).toEqual(dates[3]);
     });
+    test("Can push/pop a small heap", () => {
+        expect(heap([3]).push(4).pop()).toBe(3);
+        expect(heap([4]).push(3).pop()).toBe(3);
+        expect(heap([4]).pop()).toBe(4);
+        const repopulate = heap([4]);
+        repopulate.pop();
+        repopulate.push(3);
+        expect(repopulate.pop()).toBe(3);
+    });
 });
