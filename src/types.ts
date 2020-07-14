@@ -1,16 +1,22 @@
 export type TypeCompareAnalysis = 'string' | 'number' | 'Date';
 
+export interface Tree<T> {
+    parent: Tree<T> | null;
+    item: T;
+    children: Array<Tree<T>>;
+}
+
 export interface Heap<T> {
 
     /**
-     * Pointer to min location
+     * Index of min location
      */
-    minimum: [number, number];
+    minimum: number;
 
     /**
      * Items in queue
      */
-    items: T[][];
+    items: Array<Tree<T>>;
 
     /**
      * Remove top element (min)

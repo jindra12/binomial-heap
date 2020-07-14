@@ -1,18 +1,23 @@
-import { Heap } from "../types";
+import { Heap, Tree } from "../types";
 import { preSanityCheck, sanityCheck } from "./comparators";
 import { readMin } from "./traverseHelpers";
 
-export const flatten = <T>(heap: T[][]): T[] => heap.reduce((p: T[], c) => {
-    c.forEach(item => p.push(item));
+export const flattenTree = <T>(tree: Tree<T>, acc: T[]) => {
+    acc.push(tree.item);
+    tree.children.forEach(child => flattenTree(child, acc));
+}
+
+export const flatten = <T>(heap: Array<Tree<T>>): T[] => heap.reduce((p: T[], c) => {
+    flattenTree(c, p);
     return p;
 }, []);
 
-export const failedMerge = <T>(a: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void): T[][] => [
+export const failedMerge = <T>(a: Array<Tree<T>>, compare: (a: T, b: T) => number, getMin: (params: number) => void): Array<Tree<T>> => [
     ...flatten(a),
-].reduce((p: T[][], c) => mergeHeaps(p, [[c]] as any, compare, getMin), []);
+].reduce((p: Array<Tree<T>>, c) => mergeHeaps(p, [[c]] as any, compare, getMin), []);
 
-export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => number, getMin: (params: [number, number]) => void): T[][] => {
-    const mergingQueue: T[][] = [];
+export const mergeHeaps = <T>(a: Array<Tree<T>>, b: Array<Tree<T>>, compare: (a: T, b: T) => number, getMin: (params: number) => void): Array<Tree<T>> => {
+    const mergingQueue: Array<Tree<T>> = [];
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
         if (a[i] !== undefined && b[i] === undefined) {
             mergingQueue.push(a[i]);
@@ -20,7 +25,7 @@ export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => numbe
         else if (b[i] !== undefined && a[i] === undefined) {
             mergingQueue.push(b[i]);
         }
-        else if (a[i].length < b[i].length) {
+        else if (a[i].children.length < b[i].children.length) {
             mergingQueue.push(a[i]);
             mergingQueue.push(b[i]);
         } else {
@@ -32,7 +37,7 @@ export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => numbe
         const next = mergingQueue[i + 1];
         if (next) {
             const further = mergingQueue[i + 2];
-            if (next.length === tree.length && (!further || further.length !== next.length)) {
+            if (next.children.length === tree.children.length && (!further || further.children.length !== next.children.length)) {
                 mergingQueue[i + 1] = mergeTree(tree, next, compare);
                 delete mergingQueue[i];
             }
@@ -41,28 +46,29 @@ export const mergeHeaps = <T>(a: T[][], b: T[][], compare: (a: T, b: T) => numbe
     return readMin(mergingQueue.filter(tree => tree !== undefined), compare, getMin);
 };
 
-export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: E[][], compare: ((a: T | E, b: T | E) => number), disableSanityCheck: boolean) => {
+export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: Array<Tree<E>>, compare: ((a: T | E, b: T | E) => number), disableSanityCheck: boolean) => {
     heap.compareFunction = compare;
     const merged = mergeHeaps<T | E>(
         heap.items,
         items,
         compare,
-        min => heap.minimum = min,
-    ) as T[][];
+        min => heap.minimum = min as any,
+    ) as Array<Tree<T>>;
     return disableSanityCheck 
         || preSanityCheck(heap.items, items)
         || sanityCheck(merged, compare) ? merged : failedMerge(merged, compare, min => heap.minimum = min); 
 };
 
 export const mergeTree = <T>(
-    a: T[],
-    b: T[],
+    a: Tree<T>,
+    b: Tree<T>,
     compare: (a: T, b: T) => number,
-): T[] => compare(a[0], b[0]) < 0 ? b.reduce((p, c) => {
-    p.push(c);
-    return p;
-}, a) : a.reduce((p, c) => {
-    p.push(c);
-    return p
-}, b);
+): Tree<T> => {
+    if (compare(a.item, b.item) < 0){
+        b.children.push(a);
+        return b;  
+    }
+    a.children.push(b);
+    return a;
+};
 

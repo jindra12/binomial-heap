@@ -1,4 +1,4 @@
-import { TypeCompareAnalysis } from "../types";
+import { TypeCompareAnalysis, Tree } from "../types";
 
 export const getValue = <T>(item: T): number | string => {
     if (item instanceof Date) {
@@ -21,31 +21,19 @@ export const getValue = <T>(item: T): number | string => {
     throw Error('Could not find typeof.. this should never happen!');
 };
 
-const treeSanityCheck = <T>(tree: T[], compare: (a: T, b: T) => number): boolean => {
-    const compared: boolean[] = new Array<boolean>(tree.length);
-    let jump = 1;
-    for (let i = 0; i < tree.length; i++) {
-        const compareTo = tree[i];
-        while ((i + jump) < tree.length) {
-            if (compared[i + jump]) {
-                break;
-            }
-            if (compare(tree[i + jump], compareTo) < 0) {
-                return false;
-            }
-            jump *= 2;
-        }
-        jump = 1;
-    }
-    return true;
-};
+const treeSanityCheck = <T>(tree: Tree<T>, compare: (a: T, b: T) => number): boolean => tree
+    .children
+    .reduce(
+        (p: boolean, c) => !p ? false : compare(c.item, tree.item) >= 0 && treeSanityCheck(c, compare),
+        true,
+    );
 
-export const sanityCheck = <T>(heap: T[][], compare: (a: T, b: T) => number): boolean => heap.reduce(
+export const sanityCheck = <T>(heap: Array<Tree<T>>, compare: (a: T, b: T) => number): boolean => heap.reduce(
     (p: boolean, c) => !p ? false : treeSanityCheck(c, compare),
     true,
 );
 
-export const preSanityCheck = <T, E>(a: T[][], b: E[][], compare?: Function) => typeof (a[0] && a[0][0]) === typeof (b[0] && b[0][0]) && !compare;
+export const preSanityCheck = <T, E>(a: Array<Tree<T>>, b: Array<Tree<E>>, compare?: Function) => typeof (a[0] && a[0].item) === typeof (b[0] && b[0].item) && !compare;
 
 export const typeComparisonAnalyzer = <T>(items: T[]): TypeCompareAnalysis => items.reduce(
     (p: TypeCompareAnalysis, item) => {
@@ -93,50 +81,55 @@ export const getDefaultComparator = <T>(kindOfCompare: 'string' | 'number' | 'Da
 };
 
 const findInSubTree = <T>(
-    tree: T[],
+    tree: Tree<T>,
     item: T,
     compare: (a: T, b: T) => number,
-): number | null => {
-    const compared: boolean[] = new Array<boolean>(tree.length);
-    let jump = 1;
-    for (let i = 0; i < tree.length; i++) {
-        if (!compare(item, tree[i])) {
-            return i;
-        }
-        while ((i + jump) < tree.length) {
-            if (compared[i + jump]) {
-                break;
-            }
-            const resolveCompare = compare(item, tree[i + jump]);
-            if (resolveCompare < 0) {
-                break;
-            }
-            if (!resolveCompare) {
-                return i + jump;
-            }
-            jump *= 2;
-        }
-        jump = 1;
+): Tree<T> | null => {
+    if (!compare(tree.item, item)) {
+        return tree;
     }
-    return null;
+    return tree.children.reduce((p: Tree<T> | null, c) => Boolean(p) 
+        ? p
+        : (
+            compare(c.item, item) < 0
+                ? findInSubTree(c, item, compare)
+                : p
+        ),
+        null,
+    );
 };
 
-const find = <T>(heap: T[][], item: T, compare: (a: T, b: T) => number): [number, number] | null => heap.reduce(
-    (p: [number, number] | null, tree, i) => {
-        if (p || compare(item, tree[0]) < 0) {
+const find = <T>(heap: Array<Tree<T>>, item: T, compare: (a: T, b: T) => number): Tree<T> | null => heap.reduce(
+    (p: Tree<T> | null, tree) => {
+        if (p || compare(item, tree.item) < 0) {
             return p;
         }
         const found = findInSubTree(tree, item, compare);
-        return found !== null ? [i, found] : p;
+        return found !== null ? found : p;
     },
     null,
 );
 
-const seek = <T>(heap: T[][], compare: (item: T) => boolean): [number, number] | null => heap.reduce(
-    (p: [number, number] | null, tree, i) => p ? p : tree.reduce((p: [number, number] | null, item, j) => p ? p : (compare(item) ? [i, j] : null), null),
-    null,
-);
+const seek = <T>(heap: Array<Tree<T>>, compare: (item: T) => boolean): Tree<T> | null => heap.reduce((p: Tree<T> | null, c) => {
+    if (Boolean(p)) {
+        return p;
+    }
+    if (compare(c.item)) {
+        return c;
+    }
+    return seek(c.children, compare);
+}, null);
 
-export const getIndex = <T>(heap: T[][], compareTo: T | ((item: T) => boolean), compare: (a: T, b: T) => number): [number, number] | null => typeof compareTo === 'function' 
+const treeEquality = <T>(a: Tree<T>, b: Tree<T>, compare: (a: T, b: T) => number): boolean => a.children.length === b.children.length
+    && !compare(a.item, b.item)
+    && a.children.reduce(
+        (p: boolean, c, i) => !p ? false : b.children[i] && treeEquality(c, b.children[i], compare),
+        true,
+    );
+
+export const equality = <T>(a: Array<Tree<T>>, b: Array<Tree<T>>, compare: (a: T, b: T) => number) => a.length === b.length
+    && a.reduce((p: boolean, c, i) => !p ? false : treeEquality(c, b[i], compare), true);
+
+export const getIndex = <T>(heap: Array<Tree<T>>, compareTo: T | ((item: T) => boolean), compare: (a: T, b: T) => number): Tree<T> | null => typeof compareTo === 'function' 
     ? seek(heap, compareTo as any)
     : find(heap, compareTo as any, compare);
