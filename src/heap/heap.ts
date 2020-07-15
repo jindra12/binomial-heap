@@ -22,18 +22,19 @@ export const heap = <T>(
         merge: (withHeap, compare, disableSanityCheck) => {
             const nextAnalysis = mergeComparators(heapImpl.kindOfCompare, withHeap.kindOfCompare);
             const nextCompare = compare || getDefaultComparator<T>(nextAnalysis);
-            heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, nextCompare as any, disableSanityCheck || false);
+            heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, nextCompare as any, compare, disableSanityCheck || false);
             heapImpl.kindOfCompare = nextAnalysis;
             return heapImpl as any;
         },
         compareFunction: trueCompare,
-        minimum: minCarry || -1,
+        minimum: minCarry,
         min: () => heapImpl.items[heapImpl.minimum] ? heapImpl.items[heapImpl.minimum].item : null,
         push: (item, compare, disableSanityCheck) => {
             heapImpl.items = mergeFunctionImpl(
                 heapImpl,
                 [{ parent: null, item, children: [] }],
                 compare || heapImpl.compareFunction as any,
+                compare,
                 disableSanityCheck || false,
             );
             return heapImpl as any;
@@ -43,29 +44,31 @@ export const heap = <T>(
             if (heapImpl.items.length === 0) {
                 return null;
             }
+            const item = heapImpl.items[heapImpl.minimum].item;
             const roots = heapImpl.items[heapImpl.minimum].children;
             heapImpl.items = heapImpl.items.filter((_, i) => heapImpl.minimum !== i);
-            roots.forEach(root => heapImpl.items = mergeFunctionImpl(heapImpl, [root], heapImpl.compareFunction, true));
-            return heapImpl.items[heapImpl.minimum].item;
+            roots.forEach(root => heapImpl.items = mergeFunctionImpl(heapImpl, [root], heapImpl.compareFunction, undefined, true));
+            return item;
         },
         delete: toSeek => {
-            const sought = getIndex(
+            const [sought, index] = getIndex(
                 heapImpl.items,
                 toSeek,
                 heapImpl.compareFunction,
-            );
-            if (sought) {
+            ) || [];
+            if (sought && index !== undefined) {
                 treeClimb(sought);
+                heapImpl.minimum = index;
                 return heapImpl.pop();
             }
             return null;
         },
         search: toSeek => {
-            const sought = getIndex(
+            const [sought] = getIndex(
                 heapImpl.items,
                 toSeek,
                 heapImpl.compareFunction,
-            );
+            ) || [];
             if (sought) {
                 return sought.item;
             }

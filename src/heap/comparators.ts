@@ -91,7 +91,7 @@ const findInSubTree = <T>(
     return tree.children.reduce((p: Tree<T> | null, c) => Boolean(p) 
         ? p
         : (
-            compare(c.item, item) < 0
+            compare(c.item, item) <= 0
                 ? findInSubTree(c, item, compare)
                 : p
         ),
@@ -99,37 +99,37 @@ const findInSubTree = <T>(
     );
 };
 
-const find = <T>(heap: Array<Tree<T>>, item: T, compare: (a: T, b: T) => number): Tree<T> | null => heap.reduce(
-    (p: Tree<T> | null, tree) => {
+const find = <T>(heap: Array<Tree<T>>, item: T, compare: (a: T, b: T) => number, pass?: number): [Tree<T>, number] | null => heap.reduce(
+    (p: [Tree<T>, number] | null, tree, i) => {
         if (p || compare(item, tree.item) < 0) {
             return p;
         }
         const found = findInSubTree(tree, item, compare);
-        return found !== null ? found : p;
+        return found !== null ? [found, pass === undefined ? i : pass] : p;
     },
     null,
 );
 
-const seek = <T>(heap: Array<Tree<T>>, compare: (item: T) => boolean): Tree<T> | null => heap.reduce((p: Tree<T> | null, c) => {
+const seek = <T>(heap: Array<Tree<T>>, compare: (item: T) => boolean, pass?: number): [Tree<T>, number] | null => heap.reduce((p: [Tree<T>, number] | null, c, i) => {
     if (Boolean(p)) {
         return p;
     }
     if (compare(c.item)) {
-        return c;
+        return [c, pass === undefined ? i : pass];
     }
-    return seek(c.children, compare);
+    return seek(c.children, compare, i);
 }, null);
 
 const treeEquality = <T>(a: Tree<T>, b: Tree<T>, compare: (a: T, b: T) => number): boolean => a.children.length === b.children.length
     && !compare(a.item, b.item)
     && a.children.reduce(
         (p: boolean, c, i) => !p ? false : b.children[i] && treeEquality(c, b.children[i], compare),
-        true,
+        a.children.length === b.children.length,
     );
 
 export const equality = <T>(a: Array<Tree<T>>, b: Array<Tree<T>>, compare: (a: T, b: T) => number) => a.length === b.length
     && a.reduce((p: boolean, c, i) => !p ? false : treeEquality(c, b[i], compare), true);
 
-export const getIndex = <T>(heap: Array<Tree<T>>, compareTo: T | ((item: T) => boolean), compare: (a: T, b: T) => number): Tree<T> | null => typeof compareTo === 'function' 
+export const getIndex = <T>(heap: Array<Tree<T>>, compareTo: T | ((item: T) => boolean), compare: (a: T, b: T) => number): [Tree<T>, number] | null => typeof compareTo === 'function' 
     ? seek(heap, compareTo as any)
     : find(heap, compareTo as any, compare);

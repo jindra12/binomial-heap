@@ -1,9 +1,9 @@
 {
   "name": "binomial-heap",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "No dependency binomial heap, compatible with typescript, can have custom compare function",
   "main": "index.js",
-  "repository": "https://github.com/jindra12/intervals.git",
+  "repository": "https://github.com/jindra12/binomial-heap.git",
   "author": "Jan Jindráček",
   "license": "MIT",
   "man": ["./README.md"],

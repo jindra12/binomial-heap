@@ -10,7 +10,6 @@ export const readMin = <T>(merged: Array<Tree<T>>, compare: (a: T, b: T) => numb
         }
     });
     getMin(index);
-    return merged;
 }
 
 export const treeClimb = <T>(start: Tree<T>) => {

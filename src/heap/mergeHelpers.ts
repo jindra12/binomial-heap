@@ -14,7 +14,7 @@ export const flatten = <T>(heap: Array<Tree<T>>): T[] => heap.reduce((p: T[], c)
 
 export const failedMerge = <T>(a: Array<Tree<T>>, compare: (a: T, b: T) => number, getMin: (params: number) => void): Array<Tree<T>> => [
     ...flatten(a),
-].reduce((p: Array<Tree<T>>, c) => mergeHeaps(p, [[c]] as any, compare, getMin), []);
+].reduce((p: Array<Tree<T>>, c) => mergeHeaps(p, [{ parent: null, item: c, children: [] }], compare, getMin), []);
 
 export const mergeHeaps = <T>(a: Array<Tree<T>>, b: Array<Tree<T>>, compare: (a: T, b: T) => number, getMin: (params: number) => void): Array<Tree<T>> => {
     const mergingQueue: Array<Tree<T>> = [];
@@ -43,19 +43,21 @@ export const mergeHeaps = <T>(a: Array<Tree<T>>, b: Array<Tree<T>>, compare: (a:
             }
         }
     });
-    return readMin(mergingQueue.filter(tree => tree !== undefined), compare, getMin);
+    const filtered = mergingQueue.filter(tree => tree !== undefined);
+    readMin(filtered, compare, getMin);
+    return filtered
 };
 
-export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: Array<Tree<E>>, compare: ((a: T | E, b: T | E) => number), disableSanityCheck: boolean) => {
+export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: Array<Tree<E>>, compare: ((a: T | E, b: T | E) => number), nextCompare: Function | undefined, disableSanityCheck: boolean) => {
     heap.compareFunction = compare;
     const merged = mergeHeaps<T | E>(
         heap.items,
         items,
         compare,
-        min => heap.minimum = min as any,
+        min => heap.minimum = min,
     ) as Array<Tree<T>>;
     return disableSanityCheck 
-        || preSanityCheck(heap.items, items)
+        || preSanityCheck(heap.items, items, nextCompare)
         || sanityCheck(merged, compare) ? merged : failedMerge(merged, compare, min => heap.minimum = min); 
 };
 
@@ -64,11 +66,13 @@ export const mergeTree = <T>(
     b: Tree<T>,
     compare: (a: T, b: T) => number,
 ): Tree<T> => {
-    if (compare(a.item, b.item) < 0){
+    if (compare(a.item, b.item) >= 0) {
         b.children.push(a);
+        a.parent = b;
         return b;  
     }
     a.children.push(b);
+    b.parent = a;
     return a;
 };
 

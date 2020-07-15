@@ -95,5 +95,9 @@ expect(heap(dates).delete(item => new Date(item).getTime() === dates[0])).toEqua
 
 ```
 
+### Changes since 1.0.1
+
+Binomial heap now has an inner representation of tree instead of array. Done this in order to fix linear cost merge operation.
+
 
 If you encounter any bugs, or have ideas for improvement, do not hesitate to add a task or a pull request.
