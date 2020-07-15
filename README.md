@@ -1,2 +1,2 @@
 # binomial-heap
-Binomial heap with typescript support which can handle promises
+Binomial heap with typescript support which can handle complex objects
