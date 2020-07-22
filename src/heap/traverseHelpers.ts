@@ -1,4 +1,4 @@
-import { Tree } from "../types";
+import { Tree, Heap } from "../types";
 
 export const readMin = <T>(merged: Array<Tree<T>>, compare: (a: T, b: T) => number, getMin: (params: number) => void) => {
     let min = merged[0];
@@ -20,3 +20,11 @@ export const treeClimb = <T>(start: Tree<T>) => {
         treeClimb(start.parent);
     }
 };
+
+const debugTree = <T>(tree: Tree<T>): string => {
+    let acc = (tree.item as any).toString() + ' ';
+    tree.children.forEach(child => acc += debugTree(child));
+    return acc;
+};
+
+export const debug = <T>(heap: Heap<T>) => console.log({ min: heap.minimum, heap: heap.items.map(debugTree) });

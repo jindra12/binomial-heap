@@ -45,7 +45,7 @@ export const mergeHeaps = <T>(a: Array<Tree<T>>, b: Array<Tree<T>>, compare: (a:
     });
     const filtered = mergingQueue.filter(tree => tree !== undefined);
     readMin(filtered, compare, getMin);
-    return filtered
+    return filtered;
 };
 
 export const mergeFunctionImpl = <T, E>(heap: Heap<T>, items: Array<Tree<E>>, compare: ((a: T | E, b: T | E) => number), nextCompare: Function | undefined, disableSanityCheck: boolean) => {

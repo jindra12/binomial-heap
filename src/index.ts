@@ -1,4 +1,4 @@
 import { heap } from './heap/heap';
 
-export { Heap } from './types';
+export { Heap, PromiseHeap } from './types';
 export default heap;

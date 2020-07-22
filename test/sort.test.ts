@@ -37,4 +37,14 @@ describe("Can sort out heaps", () => {
         ];
         expect(heap(dates).sort()).toEqual(dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime()));
     });
+    test("Can sort with push/pop", () => {
+        const unSorted = [1, 2, 3, -3, 5, 10, 22, -1, 0, 0, 0, 5];
+        const example = heap(unSorted);
+        example.pop();
+        example.pop();
+        example.push(-3);
+        example.push(-1);
+        const sorted = example.sort();
+        expect(sorted).toEqual(unSorted.sort((a, b) => a - b));
+    });
 });

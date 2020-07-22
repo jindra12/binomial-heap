@@ -6,6 +6,74 @@ export interface Tree<T> {
     children: Array<Tree<T>>;
 }
 
+/**
+ * Promisified version of heap
+ */
+export interface PromiseHeap<T> {
+    /**
+     * Original sync heap
+     */
+    heap: Heap<T>;
+
+    /**
+     * Remove top element (min)
+     */
+    pop: () => Promise<T | null>;
+
+    /**
+     * Does this heap equal another?
+     */
+    equals: (heap: PromiseHeap<T>) => Promise<boolean>;
+
+    /**
+     * Find out minimum value in heap
+     */
+    min: () => T | null;
+
+    /**
+     * Returns sorted array of elements. Will empty out the heap
+     */
+    sort: () => Promise<T[]>;
+
+    /**
+     * Delete an element, min or max from heap
+     */
+    delete: (item: T | ((compare: T) => boolean)) => Promise<T | null>;
+
+    /**
+     * Search through the heap for an element
+     */
+    search: (seek: T | ((compare: T) => boolean)) => Promise<T | null>;
+
+    /**
+     * Set up custom comparator function
+     */
+    compare: (comparison: (a: T, b: T) => number) => Promise<PromiseHeap<T>>;
+
+    /**
+     * Merge two heaps together
+     */
+    merge: <E>(
+        heap: PromiseHeap<E>,
+        compare?: (a: T | E, b: T | E) => number,
+        disableSanityCheck?: boolean,
+    ) => Promise<PromiseHeap<T | E>>;
+
+    /**
+     * Add another element
+     */
+    push: <E>(
+        item: E,
+        compare?: (a: T | E, b: T | E) => number,
+        disableSanityCheck?: boolean,
+    ) => Promise<PromiseHeap<T | E>>;
+
+    /**
+     * Turn heap back to sync
+     */
+    sync: () => Heap<T>;
+}
+
 export interface Heap<T> {
 
     /**
@@ -80,4 +148,9 @@ export interface Heap<T> {
         compare?: (a: T | E, b: T | E) => number,
         disableSanityCheck?: boolean,
     ) => Heap<T | E>;
+
+    /**
+     * Converts heap to asynchronous
+     */
+    promisify: () => PromiseHeap<T>;
 }

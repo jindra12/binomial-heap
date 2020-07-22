@@ -1,7 +1,8 @@
 import { Heap, Tree } from '../types';
 import { getDefaultComparator, getIndex, sanityCheck, typeComparisonAnalyzer, mergeComparators, equality } from './comparators';
-import { treeClimb } from './traverseHelpers';
+import { treeClimb, readMin } from './traverseHelpers';
 import { mergeHeaps, mergeFunctionImpl, failedMerge } from './mergeHelpers';
+import { promisifyHeap } from './promisify';
 
 export const heap = <T>(
     items: T[],
@@ -47,7 +48,11 @@ export const heap = <T>(
             const item = heapImpl.items[heapImpl.minimum].item;
             const roots = heapImpl.items[heapImpl.minimum].children;
             heapImpl.items = heapImpl.items.filter((_, i) => heapImpl.minimum !== i);
-            roots.forEach(root => heapImpl.items = mergeFunctionImpl(heapImpl, [root], heapImpl.compareFunction, undefined, true));
+            if (roots.length > 0) {
+                roots.forEach(root => heapImpl.items = mergeFunctionImpl(heapImpl, [root], heapImpl.compareFunction, undefined, true));
+            } else {
+                readMin(heapImpl.items, heapImpl.compareFunction, min => heapImpl.minimum = min);
+            }
             return item;
         },
         delete: toSeek => {
@@ -83,6 +88,7 @@ export const heap = <T>(
             }
             return acc;
         },
+        promisify: () => promisifyHeap(heapImpl),
         kindOfCompare: inputAnalysis,
     };
     return heapImpl as any;
