@@ -4,6 +4,10 @@ import { treeClimb, readMin } from './traverseHelpers';
 import { mergeHeaps, mergeFunctionImpl, failedMerge } from './mergeHelpers';
 import { promisifyHeap } from './promisify';
 
+Array.prototype.heap = function(compare) {
+    return heap(this, compare);
+}
+
 export const heap = <T>(
     items: T[],
     compare?: (a: T, b: T) => number,

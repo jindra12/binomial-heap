@@ -104,8 +104,12 @@ Binomial heap now has an inner representation of tree instead of array. Done thi
 
 Binomial heap now can be converted into a promisified heap, returning promises for each operation.
 
-
 Also, fixed a bug in pop function. Added appropriate unit tests.
 
+### Changes since 1.2.0
+
+Package now extends array interface to allow you to convert it to heap.
+
+## Footer
 
 If you encounter any bugs, or have ideas for improvement, do not hesitate to add a task or a pull request.

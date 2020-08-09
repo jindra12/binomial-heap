@@ -40,4 +40,16 @@ describe("Can setup a custom comparator function", () => {
             { d: 3 },
         ]);
     });
+    test("Can use extended array interface", () => {
+        const array = [1, 2, 4, 0, -1, 5];
+        expect(array.heap().sort()).toEqual(array.sort());
+        const objects = [
+            { a: 5 },
+            { c: '4' },
+            { b: 5 },
+            { f: 9 },
+            { a: 6 },
+        ];
+        expect(objects.heap((a: object, b: object) => JSON.stringify(a).localeCompare(JSON.stringify(b))).search(item => item['a'] === 5)).toEqual({ a: 5 });
+    })
 });

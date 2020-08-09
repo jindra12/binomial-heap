@@ -6,6 +6,14 @@ export interface Tree<T> {
     children: Array<Tree<T>>;
 }
 
+declare global {
+    interface Array<T> {
+        heap: (compare?: (a: T, b: T) => number) => Heap<T>;
+    }
+}
+
+
+
 /**
  * Promisified version of heap
  */
