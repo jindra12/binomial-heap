@@ -1,5 +1,7 @@
 export type TypeCompareAnalysis = 'string' | 'number' | 'Date';
 
+export type DefinedCompare<T> = ((a: T, b: T) => number) | ((a: T) => number);
+
 export interface Tree<T> {
     parent: Tree<T> | null;
     item: T;
@@ -8,7 +10,7 @@ export interface Tree<T> {
 
 declare global {
     interface Array<T> {
-        heap: (compare?: (a: T, b: T) => number) => Heap<T>;
+        heap: (compare?: DefinedCompare<T>) => Heap<T>;
     }
 }
 
@@ -56,14 +58,14 @@ export interface PromiseHeap<T> {
     /**
      * Set up custom comparator function
      */
-    compare: (comparison: (a: T, b: T) => number) => Promise<PromiseHeap<T>>;
+    compare: (comparison: DefinedCompare<T>) => Promise<PromiseHeap<T>>;
 
     /**
      * Merge two heaps together
      */
     merge: <E>(
         heap: PromiseHeap<E>,
-        compare?: (a: T | E, b: T | E) => number,
+        compare?: DefinedCompare<T | E>,
         disableSanityCheck?: boolean,
     ) => Promise<PromiseHeap<T | E>>;
 
@@ -72,7 +74,7 @@ export interface PromiseHeap<T> {
      */
     push: <E>(
         item: E,
-        compare?: (a: T | E, b: T | E) => number,
+        compare?: DefinedCompare<T | E>,
         disableSanityCheck?: boolean,
     ) => Promise<PromiseHeap<T | E>>;
 
@@ -137,14 +139,14 @@ export interface Heap<T> {
     /**
      * Set up custom comparator function
      */
-    compare: (comparison: (a: T, b: T) => number) => Heap<T>;
+    compare: (comparison: DefinedCompare<T>) => Heap<T>;
 
     /**
      * Merge two heaps together
      */
     merge: <E>(
         heap: Heap<E>,
-        compare?: (a: T | E, b: T | E) => number,
+        compare?: DefinedCompare<T | E>,
         disableSanityCheck?: boolean,
     ) => Heap<T | E>;
 
@@ -153,7 +155,7 @@ export interface Heap<T> {
      */
     push: <E>(
         item: E,
-        compare?: (a: T | E, b: T | E) => number,
+        compare?: DefinedCompare<T | E>,
         disableSanityCheck?: boolean,
     ) => Heap<T | E>;
 

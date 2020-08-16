@@ -1,5 +1,5 @@
-import { Heap, Tree } from '../types';
-import { getDefaultComparator, getIndex, sanityCheck, typeComparisonAnalyzer, mergeComparators, equality } from './comparators';
+import { Heap, Tree, DefinedCompare } from '../types';
+import { getDefaultComparator, getIndex, sanityCheck, typeComparisonAnalyzer, mergeComparators, equality, extendCompare } from './comparators';
 import { treeClimb, readMin } from './traverseHelpers';
 import { mergeHeaps, mergeFunctionImpl, failedMerge } from './mergeHelpers';
 import { promisifyHeap } from './promisify';
@@ -10,23 +10,24 @@ Array.prototype.heap = function(compare) {
 
 export const heap = <T>(
     items: T[],
-    compare?: (a: T, b: T) => number,
+    compare?: DefinedCompare<T>,
 ): Heap<T> => {
     let minCarry: number = -1;
     const inputAnalysis = !compare ? typeComparisonAnalyzer(items) : 'string';
-    const trueCompare = (compare || getDefaultComparator<T>(inputAnalysis)) as any;
+    const trueCompare = (extendCompare(compare) || getDefaultComparator<T>(inputAnalysis)) as any;
     const heapImpl: Heap<T> = {
         items: items.length > 0 ? items.reduce((p: Array<Tree<T>>, c) => mergeHeaps(p, [{ parent: null, item: c, children: [] }], trueCompare, min => minCarry = min), []) : [],
         compare: compareFunction => {
-            heapImpl.compareFunction = compareFunction;
-            if (!sanityCheck(heapImpl.items, compareFunction)) {
-                heapImpl.items = failedMerge(heapImpl.items, compareFunction, min => heapImpl.minimum = min);
+            const realCompare = extendCompare(compareFunction)!;
+            heapImpl.compareFunction = realCompare;
+            if (!sanityCheck(heapImpl.items, realCompare)) {
+                heapImpl.items = failedMerge(heapImpl.items, realCompare, min => heapImpl.minimum = min);
             }
             return heapImpl;
         },
         merge: (withHeap, compare, disableSanityCheck) => {
             const nextAnalysis = mergeComparators(heapImpl.kindOfCompare, withHeap.kindOfCompare);
-            const nextCompare = compare || getDefaultComparator<T>(nextAnalysis);
+            const nextCompare = extendCompare(compare) || getDefaultComparator<T>(nextAnalysis);
             heapImpl.items = mergeFunctionImpl(heapImpl, withHeap.items, nextCompare as any, compare, disableSanityCheck || false);
             heapImpl.kindOfCompare = nextAnalysis;
             return heapImpl as any;
@@ -38,7 +39,7 @@ export const heap = <T>(
             heapImpl.items = mergeFunctionImpl(
                 heapImpl,
                 [{ parent: null, item, children: [] }],
-                compare || heapImpl.compareFunction as any,
+                extendCompare(compare) || heapImpl.compareFunction as any,
                 compare,
                 disableSanityCheck || false,
             );

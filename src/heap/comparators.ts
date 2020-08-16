@@ -21,6 +21,14 @@ export const getValue = <T>(item: T): number | string => {
     throw Error('Could not find typeof.. this should never happen!');
 };
 
+export const extendCompare = <T>(compare?: ((a: T, b: T) => number) | ((a: T) => number)) => {
+    if (!compare || compare.length === 2) {
+        return compare;
+    }
+    const singleParam = compare as (a: T) => number;
+    return (a: T, b: T) => singleParam(a) - singleParam(b);
+}
+
 const treeSanityCheck = <T>(tree: Tree<T>, compare: (a: T, b: T) => number): boolean => tree
     .children
     .reduce(

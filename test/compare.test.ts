@@ -51,5 +51,14 @@ describe("Can setup a custom comparator function", () => {
             { a: 6 },
         ];
         expect(objects.heap((a: object, b: object) => JSON.stringify(a).localeCompare(JSON.stringify(b))).search(item => item['a'] === 5)).toEqual({ a: 5 });
-    })
+    });
+    test("Can use shorthand fn with single param for comparison", async () => {
+        const array = [5, -1, 0, 3, -2];
+        const absSort = (a: number, b: number) => Math.abs(a) - Math.abs(b);
+        expect(heap(array, Math.abs).sort()).toEqual(array.sort(absSort));
+        expect(heap(array).compare(Math.abs).sort()).toEqual(array.sort(absSort));
+        expect(heap(array).merge(heap(array), Math.abs).sort()).toEqual([...array, ...array].sort(absSort));
+        expect(heap(array).push(5, Math.abs).sort()).toEqual([5, ...array].sort(absSort));
+        expect(await (await heap(array).promisify().merge(heap(array).promisify(), Math.abs)).sort()).toEqual([...array, ...array].sort(absSort));
+    });
 });

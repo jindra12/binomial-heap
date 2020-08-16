@@ -110,6 +110,21 @@ Also, fixed a bug in pop function. Added appropriate unit tests.
 
 Package now extends array interface to allow you to convert it to heap.
 
+### Changes since 1.3.0
+
+Package now allows for a short-hand definition of compare function (one parameter is enough, will be converted to: (a, b) => fn(a) - fn(b)).
+
+#### Example
+
+```typescript
+
+const array = [5, -1, 0, 3, -2];
+const absSort = (a: number, b: number) => Math.abs(a) - Math.abs(b);
+expect(heap(array, Math.abs).sort()).toEqual(array.sort(absSort));
+expect(heap(array).compare(Math.abs).sort()).toEqual(array.sort(absSort));
+
+```
+
 ## Footer
 
 If you encounter any bugs, or have ideas for improvement, do not hesitate to add a task or a pull request.
